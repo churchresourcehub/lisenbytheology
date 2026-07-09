@@ -41,3 +41,5 @@ Set spend limits in both consoles to cap it. Browsing costs nothing.
 If you regenerate `data/corpus.json`, re-run `python3 embed_corpus.py` afterward so the
 fingerprints match the new text (the site auto-detects a mismatch and falls back to
 keyword search until you do).
+
+Source repo: https://github.com/churchresourcehub/lisenbytheology (Vercel auto-deploys on push).
