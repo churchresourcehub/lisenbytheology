@@ -662,14 +662,18 @@ SUGG.forEach(q=>{const s=document.createElement('span');s.className='s';s.textCo
 
 function srcLine(label,items){const d=document.createElement('div');d.className='src';
   d.textContent=label+': '+items.join('  ·  ');return d;}
+let chatHistory=[]; // [{q, a}] of completed turns, so follow-ups keep their context
 async function ask(){
   const q=qbox.value.trim(); if(!q)return;
   if(!CORPUS_READY){addMsg('a','Still loading his writings, give it a few seconds and try again.');return;}
   qbox.value=''; sendBtn.disabled=true;
   addMsg('u',esc(q));
   if(q.toLowerCase().startsWith('debug:')){ await debugRetrieval(q.slice(6).trim()); sendBtn.disabled=false; return; }
-  const picks=retrieve(q,2);
-  let docs=await retrieveHybrid(q,6);
+  // Retrieve on the conversation, not the bare follow-up: "give me a plain
+  // version" should search as part of the question it refers to.
+  const rq=chatHistory.length?(chatHistory[chatHistory.length-1].q+'\n'+q):q;
+  const picks=retrieve(rq,2);
+  let docs=await retrieveHybrid(rq,6);
   if(!picks.length && !docs.length){addMsg('a','I could not find anything on that in his writings or the church resources. Try rephrasing toward a doctrine, a Bible passage, a sermon, or a ministry topic.');sendBtn.disabled=false;return;}
   const wait=addMsg('a','<span class="dots"><span>.</span><span>.</span><span>.</span></span>');
   const sources=picks.map(s=>({type:'locus (a page on his doctrine)', name:LOCI[s].title, text:LOCI[s].plain}));
@@ -686,11 +690,15 @@ async function ask(){
     "If he has not written or preached directly on a specific contested question, do NOT state, quote, or imply a personal position for him on it. You may instead walk the reader through how his own documented method would work the question through (the church discerning together under the Spirit as in Acts 15, the scriptural pattern of the community moving God's earlier commands in new directions, the fruit of the Spirit as the test of a genuine leading, and the refusal to settle such questions by isolated proof-texts), alongside where the Church has currently landed, and leave the conclusion to the reader. Present this explicitly as an application of his method, not as his stated view and not as a quotation. "+
     "When the sources show Woods taking a plain, strong, or evaluative position (for example calling something dangerous, wrong, a distortion, or fearmongering, as he does with dispensationalism and rapture theology), state that position directly and in his own register, with the conviction he actually gives it. Do NOT flatten his stated convictions into neutral, balanced, or academic summary, and do not add even-handed 'on the other hand' framing he did not offer. This directness applies only to positions the sources actually show him holding, and never licenses inventing a stance or a quote. "+
     "Write in the third person as a guide to his thought and practice (\"Woods holds...\", \"He has preached...\", \"At his church...\"), never in the first person as if you were him. "+
-    "Only if truly nothing relevant is present should you say briefly that this is not covered, without any lecture about source formats. Never invent quotes, documents, or citations.\n\n"+
+    "Only if truly nothing relevant is present should you say briefly that this is not covered, without any lecture about source formats. Never invent quotes, documents, or citations. "+
+    "If the QUESTION asks for a plainer, shorter, or restated version of an earlier answer in this conversation, rewrite that answer accordingly rather than treating it as a new topic.\n\n"+
     "QUESTION: "+q;
   try{
-    const resp=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,sources,question:q})});
+    const history=[];
+    chatHistory.slice(-3).forEach(t=>{history.push({role:'user',content:t.q});history.push({role:'assistant',content:t.a});});
+    const resp=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,sources,question:q,history})});
     const j=await resp.json(); if(j.error) throw new Error(j.error); const text=j.text||'';
+    chatHistory.push({q,a:text}); if(chatHistory.length>6)chatHistory.shift();
     wait.innerHTML=render(text)+(picks.length?'<div class="src">Doctrine pages: </div>':'');
     if(picks.length){const sd=wait.querySelector('.src'); picks.forEach(s=>sd.appendChild(chip(s)));}
     if(docs.length)wait.appendChild(srcLine('From his writings and resources',docs.map(d=>d.t+(d.e?' ('+d.e+')':''))));

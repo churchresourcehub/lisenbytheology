@@ -6,6 +6,12 @@ export default async function handler(req, res) {
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { body = {}; } }
   const prompt = (body && body.prompt) || '';
   const sources = (body && body.sources) || [];
+  // Prior turns from the client, oldest first, so follow-ups
+  // ("give me a plain version") can see what they refer to.
+  const history = (Array.isArray(body && body.history) ? body.history : [])
+    .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content)
+    .slice(-8)
+    .map(m => ({ role: m.role, content: m.content.slice(0, 8000) }));
   const srcText = sources.map((s, i) => {
     const head = '[SOURCE ' + (i + 1) + ': ' + (s.type || '') + (s.name ? ' — ' + s.name : '') + (s.scriptures ? ' (' + s.scriptures + ')' : '') + ']';
     return head + '\n' + (s.text || s.plain || s.quote || s.excerpt || '');
@@ -16,8 +22,8 @@ export default async function handler(req, res) {
       headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 800,
-        messages: [{ role: 'user', content: prompt + '\n\nSOURCES:\n' + srcText }]
+        max_tokens: 2500,
+        messages: history.concat([{ role: 'user', content: prompt + '\n\nSOURCES:\n' + srcText }])
       })
     });
     const j = await r.json();
