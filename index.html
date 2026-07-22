@@ -525,7 +525,6 @@ const svg=document.getElementById('svg'), SVGNS='http://www.w3.org/2000/svg';
 const NW=150,NH=52;
 function el(t,a){const e=document.createElementNS(SVGNS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
 svg.appendChild(Object.assign(el('text',{x:780,y:1066,'class':'flabel'}),{textContent:'FOUNDATION'}));
-svg.appendChild(Object.assign(el('text',{x:780,y:32,'class':'flabel'}),{textContent:'THE ENDS OF THE WAY'}));
 const edges=[]; for(const s in LOCI){(LOCI[s].hangs_from||[]).forEach(p=>{if(LOCI[p])edges.push([s,p]);});}
 edges.forEach(([c,p])=>{const a=LOCI[c],b=LOCI[p];const x1=a.x,y1=a.y-NH/2,x2=b.x,y2=b.y+NH/2,my=(y1+y2)/2;
   const path=el('path',{'class':'edge',d:`M${x1},${y1} C ${x1},${my} ${x2},${my} ${x2},${y2}`});
