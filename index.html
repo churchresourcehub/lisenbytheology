@@ -166,6 +166,7 @@
       <div class="modebar">
         <button class="mbtn active" data-view="theology">Theology</button>
         <button class="mbtn" data-view="practice">Practice</button>
+        <a class="mbtn" href="https://theologycompare.vercel.app" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block">Comparative Theology</a>
         <button class="maptoggle" id="mapToggle">View as map</button>
         <button id="askBtn">Ask Me Anything</button>
       </div>
@@ -727,7 +728,7 @@ function setView(v){
   if(v==='practice' && !practiceRendered){renderPractice();practiceRendered=true;}
   if(v==='sermons' && !sermonsRendered) renderSermons();
 }
-document.querySelectorAll('.mbtn').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+document.querySelectorAll('.mbtn[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 let mobileMap=false;
 const mapToggle=document.getElementById('mapToggle');
 if(mapToggle) mapToggle.onclick=()=>{mobileMap=!mobileMap; leftEl.classList.toggle('mapmode',mobileMap); mapToggle.textContent=mobileMap?'View as list':'View as map';};
