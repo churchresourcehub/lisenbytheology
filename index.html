@@ -652,7 +652,7 @@ const KINDLABEL={sermon:"sermon",note:"Pastor's Note",monthly:"Spanish Fort Mont
 
 const log=document.getElementById('chatlog'),qbox=document.getElementById('q'),sendBtn=document.getElementById('send');
 function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
-function render(t){return esc(t).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').split(/\n\n+/).map(p=>'<p style="margin:0 0 8px">'+p.replace(/\n/g,'<br>')+'</p>').join('');}
+function render(t){return esc(t).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').split(/\n\n+/).map(function(p){var m=p.match(/^#{1,4}\s+(.*)$/);if(m){return '<p style="margin:14px 0 6px;font-weight:bold">'+m[1]+'</p>';}return '<p style="margin:0 0 8px">'+p.replace(/\n#{1,4}\s+/g,'<br><strong>').replace(/\n/g,'<br>')+'</p>';}).join('');}
 function addMsg(cls,html){const d=document.createElement('div');d.className='msg '+cls;d.innerHTML=html;log.appendChild(d);log.scrollTop=log.scrollHeight;return d;}
 
 const SUGG=["What is his view of authority?","Has he ever preached on John 1?","How does his church run a vision process?","What does he believe about hell?","How does he do the weekly Pastor's Note?"];
